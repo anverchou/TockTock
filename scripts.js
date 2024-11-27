@@ -1,23 +1,65 @@
-document.getElementById("todo-form").addEventListener("submit", function(event) {
+let numIncompleteCount = 0;
+let numCompleteCount = 0;
+
+const todoForm = document.getElementById("todo-form");
+const todoInput = document.getElementById("todo-input");
+const incompleteList = document.getElementById("incomplete-list");
+const incompleteCount = document.getElementById("incomplete-count");
+const completeList = document.getElementById("complete-list");
+const completeCount = document.getElementById("complete-count");
+
+todoForm.addEventListener("submit", function(event) {
     event.preventDefault(); // Prevent form from refreshing the page
     
-    const taskText = document.getElementById("todo-input").value;
+    const taskText = todoInput.value;
     if (taskText === "") return;
   
     const taskItem = document.createElement("li");
-    taskItem.textContent = taskText;
+    // add complete checkbox
+    const checkBox = document.createElement("input");
+    checkBox.type = "checkbox";
+
+    checkBox.addEventListener("change", function() {
+      const parent = checkBox.parentElement;
+      const grandparent = parent.parentElement;
+      if (grandparent && grandparent.id === "incomplete-list") {
+        completeList.appendChild(parent);
+        incompleteCount.textContent = --numIncompleteCount;
+        completeCount.textContent = ++numCompleteCount;
+      } else {
+        incompleteList.appendChild(parent);
+        completeCount.textContent = --numCompleteCount;
+        incompleteCount.textContent = ++numIncompleteCount;
+      }
+    });
+    taskItem.appendChild(checkBox);
+
+    // add task text
+    const text = document.createElement("p");
+    text.textContent = taskText;
+    taskItem.appendChild(text);
   
+    // add delete button
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.classList.add("delete-btn");
     
     deleteButton.addEventListener("click", function() {
+      // decrement based on parent
+      const grandparent = deleteButton.parentElement.parentElement;
+      if (grandparent && grandparent.id === "incomplete-list") {
+        incompleteCount.textContent = --numIncompleteCount;
+      } else if (grandparent && grandparent.id === "complete-list") {
+        completeCount.textContent = --numCompleteCount;
+      }
       taskItem.remove();
     });
   
     taskItem.appendChild(deleteButton);
-    document.getElementById("todo-list").appendChild(taskItem);
+    incompleteList.appendChild(taskItem);
+
+    incompleteCount.textContent = ++numIncompleteCount;
     
-    document.getElementById("todo-input").value = ""; // Clear input field
+    todoInput.value = ""; // Clear input field
 });
   
