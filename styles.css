@@ -18,7 +18,7 @@ body {
 .side-panel-conatiner {
     min-height: 100vh;
     width: 50%;
-    padding: 5px;
+    padding: 15px;
     text-align: center;
     border: #f3f3f3;
     border-radius: 1px;
@@ -47,8 +47,9 @@ h1 {
 #todo-input {
     flex: 1;
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px 0 0 4px;
+    border: 1px solid #DDD;
+    border-radius: 4px;
+    background-color: #F8F8F8;
     outline: none;
 }
 
@@ -92,12 +93,15 @@ button:hover {
 
 .todo-list li {
     padding: 10px;
-    background-color: #f8f9fa;
-    margin-bottom: 5px;
-    border-radius: 4px;
+    border-bottom: 1px solid #f3f3f3;
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.todo-list li:hover {
+    border-radius: 4px;
+    background-color: #f8f9fa;
 }
 
 .todo-list li .delete-btn {
@@ -111,4 +115,14 @@ button:hover {
 
 .todo-list li .delete-btn:hover {
     background-color: #c82333;
+}
+
+#complete-list {
+    color: grey;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    gap: 5px
 }

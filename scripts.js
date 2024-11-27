@@ -15,12 +15,14 @@ todoForm.addEventListener("submit", function(event) {
     if (taskText === "") return;
   
     const taskItem = document.createElement("li");
+    const checkBoxAndText = document.createElement("div");
+    checkBoxAndText.classList.add("row")
+
     // add complete checkbox
     const checkBox = document.createElement("input");
     checkBox.type = "checkbox";
-
     checkBox.addEventListener("change", function() {
-      const parent = checkBox.parentElement;
+      const parent = checkBox.parentElement.parentElement; // parent in this case meaning <li>
       const grandparent = parent.parentElement;
       if (grandparent && grandparent.id === "incomplete-list") {
         completeList.appendChild(parent);
@@ -32,12 +34,13 @@ todoForm.addEventListener("submit", function(event) {
         incompleteCount.textContent = ++numIncompleteCount;
       }
     });
-    taskItem.appendChild(checkBox);
+    checkBoxAndText.appendChild(checkBox);
 
     // add task text
     const text = document.createElement("p");
     text.textContent = taskText;
-    taskItem.appendChild(text);
+    checkBoxAndText.appendChild(text);
+    taskItem.appendChild(checkBoxAndText);
   
     // add delete button
     const deleteButton = document.createElement("button");
@@ -47,6 +50,7 @@ todoForm.addEventListener("submit", function(event) {
     deleteButton.addEventListener("click", function() {
       // decrement based on parent
       const grandparent = deleteButton.parentElement.parentElement;
+      console.log(grandparent.id);
       if (grandparent && grandparent.id === "incomplete-list") {
         incompleteCount.textContent = --numIncompleteCount;
       } else if (grandparent && grandparent.id === "complete-list") {
@@ -54,12 +58,10 @@ todoForm.addEventListener("submit", function(event) {
       }
       taskItem.remove();
     });
-  
     taskItem.appendChild(deleteButton);
-    incompleteList.appendChild(taskItem);
 
+    incompleteList.appendChild(taskItem);
     incompleteCount.textContent = ++numIncompleteCount;
-    
     todoInput.value = ""; // Clear input field
 });
   
