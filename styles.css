@@ -102,6 +102,16 @@ button:hover {
 .todo-list li:hover {
     border-radius: 4px;
     background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.selected {
+    background-color: #f3f3f3;
+}
+
+.todo-list li.selected:hover {
+    background-color: #f3f3f3; 
+    cursor: pointer
 }
 
 .todo-list li .delete-btn {
