@@ -1,5 +1,6 @@
 let numIncompleteCount = 0;
 let numCompleteCount = 0;
+let timer;
 
 const todoForm = document.getElementById("todo-form");
 const todoInput = document.getElementById("todo-input");
@@ -28,33 +29,66 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     selectedTaskDom.classList.add("selected");
 
-    const selectedTaskNotes = localStorage.getItem(selectedTask);
-    addNotesToRightSide(selectedTask, selectedTaskNotes);
+    addNotesToRightSide(selectedTask);
   }
+});
+
+window.addEventListener('beforeunload', () => {
+  if (selectedTaskDom == null) return;
+
+  const selectedTask = selectedTaskDom.querySelector('p').textContent;
+  setNoteToLocalStorage(selectedTask, textNotes.value);
 });
 
 todoForm.addEventListener("submit", function(event) {
     event.preventDefault(); // Prevent form from refreshing the page
     
     const taskText = todoInput.value;
-    if (taskText === "") return;
+    todoInput.value = "";
+
+    if (taskText === "") {
+      return;
+    } else if (checkDuplicateTask(taskText)) {
+      alert("Duplicate notes title aren't allowed");
+      return;
+    } else if (taskText === "completeList" || taskText === "incompleteList" || taskText === "selectedTask") {
+      alert(taskText + " is a reversed word for this application");
+      return;
+    }
   
     addTodoToDom(taskText, incompleteList, incompleteCount, true);
-    
-    todoInput.value = ""; // Clear input field
 });
 
-function addNotesToRightSide(title, text) {
+textNotes.addEventListener("input", () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    const selectedTask = selectedTaskDom.querySelector('p').textContent;
+    setNoteToLocalStorage(selectedTask, textNotes.value);
+  }, 500); // Save after 500ms of inactivity
+});
+
+function checkDuplicateTask(taskText) {
+  const allTasks = document.querySelectorAll("li");
+  for (const task of allTasks) {
+    const paragraph = task.querySelector('p');
+    if (paragraph && paragraph.textContent.trim() === taskText) return true;
+  }
+
+  return false;
+};
+
+function addNotesToRightSide(title) {
   titleNotes.textContent = title;
-  if (text != null) textNotes.textContent = text;
+  const note = localStorage.getItem(title);
+  if (note != null) textNotes.value = note;
+  else textNotes.value = "";
 };
 
 function clearNotes() {
   titleNotes.textContent = "";
-  textNotes.textContent = "";
+  textNotes.value = "";
 }
   
-// TODO: prevent duplicate note titles
 function addTodoToDom(taskText, list, count, addToLocalStorage) {
   const taskItem = document.createElement("li");
   taskItem.addEventListener("click", function() {
@@ -97,11 +131,12 @@ function addTodoToDom(taskText, list, count, addToLocalStorage) {
 
 // when tasks are clicked
 function selectTask(task) {
+  textNotes.style.display = "block";
   if (selectedTaskDom != null) selectedTaskDom.classList.remove("selected");
   task.classList.add("selected");
   selectedTaskDom = task;
   const selectedTask = selectedTaskDom.querySelector('p').textContent;
-  addNotesToRightSide(selectedTask, null);
+  addNotesToRightSide(selectedTask);
   localStorage.setItem("selectedTask", selectedTask);
 };
 
@@ -110,13 +145,13 @@ function moveTask(checkBox, taskText) {
   const parent = checkBox.parentElement.parentElement; // parent in this case meaning <li>
   const grandparent = parent.parentElement;
   if (grandparent && grandparent.id === "incomplete-list") {
-    removeTaskToLocalStorage(taskText, incompleteList);
+    removeTaskFromLocalStorage(taskText, incompleteList);
     addTaskToLocalStorage(taskText, completeList);
     completeList.appendChild(parent);
     incompleteCount.textContent = --numIncompleteCount;
     completeCount.textContent = ++numCompleteCount;
   } else {
-    removeTaskToLocalStorage(taskText, completeList);
+    removeTaskFromLocalStorage(taskText, completeList);
     addTaskToLocalStorage(taskText, incompleteList);
     incompleteList.appendChild(parent);
     completeCount.textContent = --numCompleteCount;
@@ -128,14 +163,18 @@ function moveTask(checkBox, taskText) {
 function deleteTask(deleteButton, taskText, taskItem) {
   const grandparent = deleteButton.parentElement.parentElement;
   if (grandparent && grandparent.id === "incomplete-list") {
-    removeTaskToLocalStorage(taskText, incompleteList);
+    removeTaskFromLocalStorage(taskText, incompleteList);
     incompleteCount.textContent = --numIncompleteCount;
   } else if (grandparent && grandparent.id === "complete-list") {
-    removeTaskToLocalStorage(taskText, completeList);
+    removeTaskFromLocalStorage(taskText, completeList);
     completeCount.textContent = --numCompleteCount;
   }
   taskItem.remove();
-  if (taskText == localStorage.getItem("selectedTask")) localStorage.removeItem("selectedTask");
+  if (taskText == localStorage.getItem("selectedTask")) {
+    textNotes.style.display = "none";
+    localStorage.removeItem("selectedTask");
+  }
+  removeNoteFromLocalStorage(taskText);
   clearNotes()
 }
 
@@ -146,9 +185,23 @@ function addTaskToLocalStorage(taskText, list) {
   localStorage.setItem(listName, JSON.stringify(storedTodos));
 };
 
-function removeTaskToLocalStorage(taskText, list) {
+function removeTaskFromLocalStorage(taskText, list) {
   let listName = list == incompleteList ? "incompleteList" : "completeList";
   let storedTodos = JSON.parse(localStorage.getItem(listName)) || [];
   storedTodos = storedTodos.filter(item => item !== taskText);
   localStorage.setItem(listName, JSON.stringify(storedTodos));
 };
+
+function setNoteToLocalStorage(taskText, note)  {
+  note = note.trim()
+  if (note.length === 0) {
+    removeNoteFromLocalStorage(taskText);
+    return;
+  }
+
+  localStorage.setItem(taskText, note);
+};
+
+function removeNoteFromLocalStorage(taskText) {
+  localStorage.removeItem(taskText);
+}
