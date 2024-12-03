@@ -22,6 +22,7 @@ body {
     text-align: center;
     border: #f3f3f3;
     border-radius: 1px;
+    text-align: start;
 }
 
 .todo-container {
@@ -34,7 +35,7 @@ body {
 .notes-container {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
 }
 
 h1 {
@@ -99,6 +100,7 @@ button:hover {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 5px;
 }
 
 .todo-list li:hover {
@@ -143,7 +145,27 @@ button:hover {
     flex: 1;
     width: 100%;
     resize: none;
-    padding: 10px;
     border: none;
     outline: none;
+}
+
+#date-time {
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    background-color: white;
+    padding: 8px;
+    bottom: 15px;
+    right: 15px;
+    position: fixed;
+    z-index: 100;
+}
+
+#detail-notes {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    display: flex;
+    flex-direction: row;
+    border: #f3f3f3;
+    border-bottom-style: solid;
+    gap: 10px;
 }

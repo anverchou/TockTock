@@ -12,24 +12,26 @@ let selectedTaskDom = null;
 
 const titleNotes = document.getElementById("title-notes");
 const textNotes = document.getElementById("text-notes");
+const checkboxNotes = document.getElementById("checkbox-notes");
+const dateNotes = document.getElementById("date-notes");
+const detailNotes = document.getElementById("detail-notes")
 
 // Load data if it's already there
 window.addEventListener('DOMContentLoaded', () => {
   const todoIncompleteList = JSON.parse(localStorage.getItem('incompleteList')) || [];
   const todoCompleteList = JSON.parse(localStorage.getItem('completeList')) || [];
-  todoIncompleteList.forEach(taskText => addTodoToDom(taskText, incompleteList, incompleteCount, false));
-  todoCompleteList.forEach(taskText => addTodoToDom(taskText, completeList, completeCount, false));
+  todoIncompleteList.forEach(taskText => addTodoToDom(taskText, incompleteList, incompleteCount));
+  todoCompleteList.forEach(taskText => addTodoToDom(taskText, completeList, completeCount));
 
   const selectedTask = localStorage.getItem("selectedTask");
   if (selectedTask != null) {
-    const listItems = document.querySelectorAll('li');
-    selectedTaskDom = Array.from(listItems).find((li) => {
-      const paragraph = li.querySelector('p');
-      if (paragraph && paragraph.textContent.trim() === selectedTask) return this;
-    });
+    selectedTaskDom = findLiFromTitle(selectedTask);
     selectedTaskDom.classList.add("selected");
 
     addNotesToRightSide(selectedTask);
+  } else {
+    textNotes.style.display = "none";
+    detailNotes.style.display = "flex";
   }
 });
 
@@ -37,7 +39,7 @@ window.addEventListener('beforeunload', () => {
   if (selectedTaskDom == null) return;
 
   const selectedTask = selectedTaskDom.querySelector('p').textContent;
-  setNoteToLocalStorage(selectedTask, textNotes.value);
+  setNoteToLocalStorage(selectedTask, textNotes.value, null);
 });
 
 todoForm.addEventListener("submit", function(event) {
@@ -56,16 +58,30 @@ todoForm.addEventListener("submit", function(event) {
       return;
     }
   
-    addTodoToDom(taskText, incompleteList, incompleteCount, true);
+    addTodoToDom(taskText, incompleteList, incompleteCount);
+    addTaskToLocalStorage(taskText, incompleteList);
+    addNoteToLocalStorage(taskText);
 });
 
 textNotes.addEventListener("input", () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
     const selectedTask = selectedTaskDom.querySelector('p').textContent;
-    setNoteToLocalStorage(selectedTask, textNotes.value);
+    setNoteToLocalStorage(selectedTask, textNotes.value, null);
   }, 500); // Save after 500ms of inactivity
 });
+
+checkboxNotes.addEventListener("change", function() {
+  moveTask(this, localStorage.getItem("selectedTask"));
+});
+
+function findLiFromTitle(title) {
+  const listItems = document.querySelectorAll('li');
+  return Array.from(listItems).find((li) => {
+    const paragraph = li.querySelector('p');
+    if (paragraph && paragraph.textContent.trim() === title) return this;
+  });
+}
 
 function checkDuplicateTask(taskText) {
   const allTasks = document.querySelectorAll("li");
@@ -79,8 +95,10 @@ function checkDuplicateTask(taskText) {
 
 function addNotesToRightSide(title) {
   titleNotes.textContent = title;
-  const note = localStorage.getItem(title);
-  if (note != null) textNotes.value = note;
+  const object = JSON.parse(localStorage.getItem(title));
+  checkboxNotes.checked = object.checked;
+  dateNotes.textContent = "Date created: " + object.date;
+  if (object.note != null) textNotes.value = object.note;
   else textNotes.value = "";
 };
 
@@ -89,7 +107,7 @@ function clearNotes() {
   textNotes.value = "";
 }
   
-function addTodoToDom(taskText, list, count, addToLocalStorage) {
+function addTodoToDom(taskText, list, count) {
   const taskItem = document.createElement("li");
   taskItem.addEventListener("click", function() {
     selectTask(this);
@@ -123,7 +141,6 @@ function addTodoToDom(taskText, list, count, addToLocalStorage) {
   });
   taskItem.appendChild(deleteButton);
 
-  if (addToLocalStorage) addTaskToLocalStorage(taskText, list);
   list.appendChild(taskItem);
   if (list == incompleteList) count.textContent = ++numIncompleteCount;
   else count.textContent = ++numCompleteCount;
@@ -131,32 +148,38 @@ function addTodoToDom(taskText, list, count, addToLocalStorage) {
 
 // when tasks are clicked
 function selectTask(task) {
-  textNotes.style.display = "block";
   if (selectedTaskDom != null) selectedTaskDom.classList.remove("selected");
   task.classList.add("selected");
   selectedTaskDom = task;
   const selectedTask = selectedTaskDom.querySelector('p').textContent;
   addNotesToRightSide(selectedTask);
   localStorage.setItem("selectedTask", selectedTask);
+  textNotes.style.display = "block";
+  detailNotes.style.display = "flex";
 };
 
 // when tasks are complete/incomplete
 function moveTask(checkBox, taskText) {
-  const parent = checkBox.parentElement.parentElement; // parent in this case meaning <li>
-  const grandparent = parent.parentElement;
-  if (grandparent && grandparent.id === "incomplete-list") {
+  const li = findLiFromTitle(taskText);
+
+  if (checkBox.checked) {
     removeTaskFromLocalStorage(taskText, incompleteList);
     addTaskToLocalStorage(taskText, completeList);
-    completeList.appendChild(parent);
+    completeList.appendChild(li);
+    li.querySelector('input[type="checkbox"]').checked = true;
     incompleteCount.textContent = --numIncompleteCount;
     completeCount.textContent = ++numCompleteCount;
   } else {
     removeTaskFromLocalStorage(taskText, completeList);
     addTaskToLocalStorage(taskText, incompleteList);
-    incompleteList.appendChild(parent);
+    incompleteList.appendChild(li);
+    li.querySelector('input[type="checkbox"]').checked = false;
     completeCount.textContent = --numCompleteCount;
     incompleteCount.textContent = ++numIncompleteCount;
   }
+
+  setNoteToLocalStorage(taskText, null, checkBox.checked);
+  addNotesToRightSide(taskText);
 }
 
 // when task is deleted
@@ -171,11 +194,12 @@ function deleteTask(deleteButton, taskText, taskItem) {
   }
   taskItem.remove();
   if (taskText == localStorage.getItem("selectedTask")) {
-    textNotes.style.display = "none";
     localStorage.removeItem("selectedTask");
   }
   removeNoteFromLocalStorage(taskText);
   clearNotes()
+  textNotes.style.display = "none";
+  detailNotes.style.display = "none";
 }
 
 function addTaskToLocalStorage(taskText, list) {
@@ -192,16 +216,39 @@ function removeTaskFromLocalStorage(taskText, list) {
   localStorage.setItem(listName, JSON.stringify(storedTodos));
 };
 
-function setNoteToLocalStorage(taskText, note)  {
-  note = note.trim()
-  if (note.length === 0) {
-    removeNoteFromLocalStorage(taskText);
-    return;
+function addNoteToLocalStorage(taskText) {
+  const currentDate = new Date();
+  const dateString = currentDate.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}).replace(",", "");
+  const object = { title: taskText, note: "", date: dateString, checked: false};
+  localStorage.setItem(taskText.trim(), JSON.stringify(object));
+}
+
+function setNoteToLocalStorage(taskText, note, checked)  {
+  if (note != null) {
+    note = note.trim()
+    if (note.length === 0) {
+      removeNoteFromLocalStorage(taskText);
+      return;
+    }
   }
 
-  localStorage.setItem(taskText, note);
+  const object = JSON.parse(localStorage.getItem(taskText));
+  if (object == null) addNoteToLocalStorage(taskText);
+  if (note != null) object.note = note;
+  if (checked != null) object.checked = checked;
+  localStorage.setItem(taskText, JSON.stringify(object));
 };
 
 function removeNoteFromLocalStorage(taskText) {
   localStorage.removeItem(taskText);
 }
+
+function updateDateTime() {
+  const currentDate = new Date();
+  const dateString = currentDate.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}).replace(",", "");
+  const timeString = currentDate.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: true});
+  document.getElementById("date-time").innerHTML = `${dateString}<br>${timeString}`;
+}
+
+updateDateTime();
+setInterval(updateDateTime, 1000);
