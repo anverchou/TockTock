@@ -16,6 +16,10 @@ const checkboxNotes = document.getElementById("checkbox-notes");
 const dateNotes = document.getElementById("date-notes");
 const detailNotes = document.getElementById("detail-notes")
 
+const temp = document.getElementById("temp");
+const date = document.getElementById("date");
+const time = document.getElementById("time");
+
 // Load data if it's already there
 window.addEventListener('DOMContentLoaded', () => {
   const todoIncompleteList = JSON.parse(localStorage.getItem('incompleteList')) || [];
@@ -247,8 +251,69 @@ function updateDateTime() {
   const currentDate = new Date();
   const dateString = currentDate.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}).replace(",", "");
   const timeString = currentDate.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit', hour12: true});
-  document.getElementById("date-time").innerHTML = `${dateString}<br>${timeString}`;
+  date.textContent = dateString;
+  time.textContent = timeString;
 }
 
 updateDateTime();
 setInterval(updateDateTime, 1000);
+
+function getCurrentPositionAsync() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve(position),
+        (error) => reject(error)
+      );
+    } else {
+      reject(new Error("Geolocation is not supported by this browser."));
+    }
+  });
+}
+
+const weatherEmojis = {
+  0: "☀️",
+  1: "🌤",
+  2: "⛅",
+  3: "☁️",
+  45: "🌫",
+  48: "🌫",
+  51: "🌦",
+  53: "🌦",
+  55: "🌦",
+  56: "🌨🧊",
+  57: "🌨🧊",
+  61: "🌧",
+  63: "🌧",
+  65: "🌧",
+  66: "🌧🧊",
+  67: "🌧🧊",
+  71: "❄️",
+  73: "❄️",
+  75: "❄️",
+  77: "🌨",
+  80: "🌦",
+  81: "🌦",
+  82: "🌦",
+  85: "🌨",
+  86: "🌨",
+  95: "🌩",
+  96: "🌩🧊",
+  99: "🌩🧊"
+};
+
+async function fetchWeather() {
+  try {
+    const position = await getCurrentPositionAsync()
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&current_weather=true&temperature_unit=fahrenheit`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    const temperature = data.current_weather.temperature;
+    temp.textContent = `${weatherEmojis[data.current_weather.weathercode]} ${temperature}°F`;
+  } catch (error) {
+    console.error('Error fetching weather data:', error);
+    temp.textContent = 'Unable to fetch weather data.';
+  }
+}
+
+fetchWeather();
