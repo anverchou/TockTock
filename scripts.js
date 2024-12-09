@@ -2,6 +2,10 @@ let numIncompleteCount = 0;
 let numCompleteCount = 0;
 let timer;
 
+const mediaQuery = window.matchMedia("(max-width: 768px)");
+const todoContainer = document.getElementById("todo-container");
+const notesContainer = document.getElementById("notes-container");
+
 const todoForm = document.getElementById("todo-form");
 const todoInput = document.getElementById("todo-input");
 const incompleteList = document.getElementById("incomplete-list");
@@ -34,8 +38,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     addNotesToRightSide(selectedTask);
   } else {
-    textNotes.style.display = "none";
-    detailNotes.style.display = "flex";
+    clearNotes();
   }
 });
 
@@ -97,7 +100,20 @@ function checkDuplicateTask(taskText) {
   return false;
 };
 
+function closeNotes() {
+  console.log("something"); 
+  if (mediaQuery.matches) {
+    todoContainer.style.display = "flex";
+    notesContainer.style.display = "none";
+  }
+  clearNotes();
+};
+
 function addNotesToRightSide(title) {
+  if (mediaQuery.matches) {
+    todoContainer.style.display = "none";
+    notesContainer.style.display = "flex";
+  }
   titleNotes.textContent = title;
   const object = JSON.parse(localStorage.getItem(title));
   checkboxNotes.checked = object.checked;
@@ -109,6 +125,8 @@ function addNotesToRightSide(title) {
 function clearNotes() {
   titleNotes.textContent = "";
   textNotes.value = "";
+  textNotes.style.display = "none";
+  detailNotes.style.display = "none";
 }
   
 function addTodoToDom(taskText, list, count) {
@@ -151,7 +169,7 @@ function addTodoToDom(taskText, list, count) {
 }
 
 // when tasks are clicked
-function selectTask(task) {
+function selectTask(task) { 
   if (selectedTaskDom != null) selectedTaskDom.classList.remove("selected");
   task.classList.add("selected");
   selectedTaskDom = task;
@@ -202,8 +220,6 @@ function deleteTask(deleteButton, taskText, taskItem) {
   }
   removeNoteFromLocalStorage(taskText);
   clearNotes()
-  textNotes.style.display = "none";
-  detailNotes.style.display = "none";
 }
 
 function addTaskToLocalStorage(taskText, list) {
@@ -228,17 +244,9 @@ function addNoteToLocalStorage(taskText) {
 }
 
 function setNoteToLocalStorage(taskText, note, checked)  {
-  if (note != null) {
-    note = note.trim()
-    if (note.length === 0) {
-      removeNoteFromLocalStorage(taskText);
-      return;
-    }
-  }
-
   const object = JSON.parse(localStorage.getItem(taskText));
   if (object == null) addNoteToLocalStorage(taskText);
-  if (note != null) object.note = note;
+  if (note != null) object.note = note.trim();
   if (checked != null) object.checked = checked;
   localStorage.setItem(taskText, JSON.stringify(object));
 };

@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="favicon.png">
 </head>
 <body>
-    <div class="side-panel-conatiner todo-container">
+    <div class="side-panel-conatiner" id="todo-container">
         <h1>TockTock</h1>
         <form id="todo-form">
             <input type="text" id="todo-input" placeholder="＋ Add a new task...">
@@ -32,10 +32,13 @@
             </ul>
         </div>
     </div>
-    <div class="side-panel-conatiner notes-container">
+    <div class="side-panel-conatiner" id="notes-container">
         <div id="detail-notes">
-            <input type="checkbox" id="checkbox-notes"/>
-            <p id="date-notes"></p>
+            <div class="details">
+                <input type="checkbox" id="checkbox-notes"/>
+                <p id="date-notes"></p>
+            </div>
+            <button class="close-button" onClick="closeNotes()">X</button>
         </div>
         <h2 id="title-notes"></h2>
         <textarea id="text-notes" class="note" placeholder="Write your note here..."></textarea>

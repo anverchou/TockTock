@@ -25,14 +25,14 @@ body {
     text-align: start;
 }
 
-.todo-container {
+#todo-container {
     border-right-style: solid;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.notes-container {
+#notes-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -72,19 +72,6 @@ h1 {
 
 .count {
     color: grey;
-}
-
-button {
-    padding: 10px;
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    border-radius: 0 4px 4px 0;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #218838;
 }
 
 .todo-list {
@@ -167,7 +154,38 @@ button:hover {
     padding-bottom: 5px;
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
     border: #f3f3f3;
     border-bottom-style: solid;
     gap: 10px;
+}
+
+.details {
+    display: flex;
+    flex-direction: row; 
+    align-items: center;
+    gap: 10px;
+}
+
+.close-button {
+    background-color: #dc3545; 
+    color: white;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.close-button:hover {
+    background-color: #c82333;
+} 
+
+@media (max-width: 768px) {
+    .side-panel-conatiner {
+        width: 100%;
+    }
+
+    #notes-container {
+        display: none;
+    }
 }
