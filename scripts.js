@@ -42,6 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
+// Before application is closed, save notes
 window.addEventListener('beforeunload', () => {
   if (selectedTaskDom == null) return;
 
@@ -49,6 +50,7 @@ window.addEventListener('beforeunload', () => {
   setNoteToLocalStorage(selectedTask, textNotes.value, null);
 });
 
+// When users add a new task
 todoForm.addEventListener("submit", function(event) {
     event.preventDefault(); // Prevent form from refreshing the page
     
@@ -70,6 +72,7 @@ todoForm.addEventListener("submit", function(event) {
     addNoteToLocalStorage(taskText);
 });
 
+// Save notes based on timer
 textNotes.addEventListener("input", () => {
   clearTimeout(timer);
   timer = setTimeout(() => {
@@ -129,6 +132,7 @@ function clearNotes() {
   detailNotes.style.display = "none";
 }
   
+// Create elements for tasks
 function addTodoToDom(taskText, list, count) {
   const taskItem = document.createElement("li");
   taskItem.addEventListener("click", function() {
@@ -255,6 +259,7 @@ function removeNoteFromLocalStorage(taskText) {
   localStorage.removeItem(taskText);
 }
 
+// Date and time scripts
 function updateDateTime() {
   const currentDate = new Date();
   const dateString = currentDate.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'}).replace(",", "");
@@ -266,6 +271,7 @@ function updateDateTime() {
 updateDateTime();
 setInterval(updateDateTime, 1000);
 
+// Getting lat and log for weather
 function getCurrentPositionAsync() {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
@@ -310,6 +316,7 @@ const weatherEmojis = {
   99: "🌩🧊"
 };
 
+// Getting weather information from open-meteo
 async function fetchWeather() {
   try {
     const position = await getCurrentPositionAsync()
